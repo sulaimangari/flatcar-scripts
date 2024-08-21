@@ -14,7 +14,7 @@ This tool creates a Flatcar VDI image to be used with VirtualBox.
 # Image signing key: buildbot@flatcar-linux.org
 GPG_KEY_URL="https://www.flatcar.org/security/image-signing-key/Flatcar_Image_Signing_Key.pem"
 GPG_LONG_ID="E25D9AED0593B34A"
-GPG_KEY="$(wget -qO- $GPG_KEY_URL)"
+GPG_KEY="$(wget2 -qO- $GPG_KEY_URL)"
 
 while getopts "V:d:a:h" OPTION
 do
@@ -67,12 +67,12 @@ IMAGE_URL="${BASE_URL}/${IMAGE_NAME}"
 DIGESTS_URL="${BASE_URL}/${DIGESTS_NAME}"
 DOWN_IMAGE="${WORKDIR}/${RAW_IMAGE_NAME}"
 
-if ! wget --spider --quiet "${IMAGE_URL}"; then
+if ! wget2 --spider --quiet "${IMAGE_URL}"; then
     echo "$0: Image URL unavailable: $IMAGE_URL" >&2
     exit 1
 fi
 
-if ! wget --spider --quiet "${DIGESTS_URL}"; then
+if ! wget2 --spider --quiet "${DIGESTS_URL}"; then
     echo "$0: Image signature unavailable: $DIGESTS_URL" >&2
     exit 1
 fi
@@ -80,7 +80,7 @@ fi
 # Gets Flatcar verion from version.txt file
 VERSION_NAME="version.txt"
 VERSION_URL="${BASE_URL}/${VERSION_NAME}"
-wget --no-verbose -O "${WORKDIR}/${VERSION_NAME}" "${VERSION_URL}"
+wget2 --no-verbose -O "${WORKDIR}/${VERSION_NAME}" "${VERSION_URL}"
 . "${WORKDIR}/${VERSION_NAME}"
 VDI_IMAGE_NAME="flatcar_production_${FLATCAR_BUILD}.${FLATCAR_BRANCH}.${FLATCAR_PATCH}.vdi"
 VDI_IMAGE="${DEST}/${VDI_IMAGE_NAME}"
@@ -91,7 +91,7 @@ mkdir "${GNUPGHOME}"
 gpg --batch --quiet --import <<<"$GPG_KEY"
 
 echo "Downloading and verifying ${IMAGE_NAME}..."
-wget --no-verbose -O "${WORKDIR}/${DIGESTS_NAME}" "${DIGESTS_URL}"
+wget2 --no-verbose -O "${WORKDIR}/${DIGESTS_NAME}" "${DIGESTS_URL}"
 if ! gpg --batch --trusted-key "${GPG_LONG_ID}" \
     --verify "${WORKDIR}/${DIGESTS_NAME}"
 then
@@ -99,7 +99,7 @@ then
     exit 1
 fi
 
-wget -O "${WORKDIR}/${IMAGE_NAME}" "${IMAGE_URL}"
+wget2 -O "${WORKDIR}/${IMAGE_NAME}" "${IMAGE_URL}"
 
 # DIGESTS may include README and other extra files we don't need, filter them.
 # Also filter one hash at a time, not required but avoids warnings from *sum.
